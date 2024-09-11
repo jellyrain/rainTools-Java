@@ -3,6 +3,9 @@ package com.rain.utils.core;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class StrUtils {
 
@@ -147,7 +150,7 @@ public final class StrUtils {
     /**
      * 格式化字符串
      * <p>
-     * 默认占位符 ${}，如果不想用和这个占位符，可以使用 {@link #formatWith(String, String, Object...)}
+     * 默认占位符 ${}，如果不想用这个占位符，可以使用 {@link #formatWith(String, String, Object...)}
      * <p>
      * 转义占位符 在占位符前加上转义符（\\）即可，如：\\${}
      * <p>
@@ -162,6 +165,48 @@ public final class StrUtils {
             return template;
         }
         return formatWith(template, "${}", params);
+    }
+
+    /**
+     * 格式化字符串,根据模版里面的占位符替换成对应的值，对应的key是占位符的值
+     * <p>
+     * 默认占位符 ${} : ${key} {key: xxx} 替换后就是 xxx
+     * <p>
+     * 如果不想用这个占位符，可以使用 {@link #formatKV(String, String, Map)}
+     *
+     * @param template 模板
+     * @param values   值
+     * @return {@link String }
+     */
+    public static String formatKV(String template, Map<String, Object> values) {
+        return formatKV(template, "\\$\\{([^\\}]+)\\}", values);
+    }
+
+
+    /**
+     * 格式化字符串,根据模版里面的占位符替换成对应的值，对应的key是占位符的值
+     *
+     * @param template           模板
+     * @param placeholderPattern 占位符读取正则表达式
+     * @param values             值
+     * @return {@link String }
+     */
+    public static String formatKV(String template, String placeholderPattern, Map<String, Object> values) {
+        // 使用传入的占位符模式构建正则表达式
+        Pattern pattern = Pattern.compile(placeholderPattern);
+        Matcher matcher = pattern.matcher(template);
+        StringBuilder sb = new StringBuilder();
+
+        while (matcher.find()) {
+            // 获取占位符中的键
+            String key = matcher.group(1);
+            // 获取替换值，如果没有则使用原占位符
+            String replacement = values.getOrDefault(key, matcher.group(0)).toString();
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(sb);
+
+        return sb.toString();
     }
 
     /**
