@@ -3,6 +3,12 @@ package com.rain.utils.Http;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 
+/**
+ * 代理 工具类
+ *
+ * @author rain
+ * @date 2024/09/10
+ */
 public final class ProxyUtils {
 
     private ProxyUtils() {

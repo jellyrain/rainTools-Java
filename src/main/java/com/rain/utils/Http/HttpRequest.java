@@ -1,12 +1,11 @@
 package com.rain.utils.Http;
 
 import com.rain.utils.Http.enums.MethodEnum;
+import com.rain.utils.Http.response.HttpFileResponse;
+import com.rain.utils.Http.response.HttpResponse;
 import com.rain.utils.Json.JsonUtils;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
@@ -25,7 +24,7 @@ public final class HttpRequest {
      * @param urlString 请求地址
      * @param method    请求方法
      * @param params    请求参数
-     * @param data      请求数据
+     * @param data      请求体
      * @param headers   请求头
      * @param timeout   超时时间（毫秒）
      * @param proxy     代理
@@ -54,7 +53,9 @@ public final class HttpRequest {
         }
 
         // 设置超时时间
-        connection.setConnectTimeout(timeout);
+        if (timeout > 0) {
+            connection.setConnectTimeout(timeout);
+        }
 
         // POST 和 PUT 和 PATCH 请求需要设置数据
         if (method.name().equals("POST") || method.name().equals("PUT") || method.name().equals("PATCH")) {
@@ -98,6 +99,13 @@ public final class HttpRequest {
         return connection;
     }
 
+    /**
+     * 发送
+     *
+     * @param connection 连接
+     * @return {@link HttpResponse }
+     * @throws IOException io异常
+     */
     public static HttpResponse send(HttpURLConnection connection) throws IOException {
         // 获取响应代码
         int responseCode = connection.getResponseCode();
@@ -109,6 +117,54 @@ public final class HttpRequest {
         byte[] body = connection.getInputStream().readAllBytes();
 
         return new HttpResponse(responseCode, headers, body);
+    }
+
+    /**
+     * 下载文件
+     *
+     * @param urlString      请求地址
+     * @param method         请求方法
+     * @param params         请求参数
+     * @param data           请求体
+     * @param headers        请求头
+     * @param streamProgress 流进度
+     * @return {@link HttpResponse }
+     * @throws IOException io异常
+     */
+    public static HttpFileResponse downloadFile(String urlString, String filePath, MethodEnum method, Map<String, String> params, Map<String, Object> data, Map<String, String> headers, Proxy proxy, StreamProgress streamProgress) throws IOException {
+        HttpURLConnection connection = request(urlString, method, params, data, headers, 0, proxy);
+
+        // 获取响应代码
+        int responseCode = connection.getResponseCode();
+
+        // 获取响应头
+        Map<String, List<String>> responseHeaders = connection.getHeaderFields();
+
+        long totalBytesRead = 0;
+        try (InputStream inputStream = connection.getInputStream(); FileOutputStream fileOutputStream = new FileOutputStream(filePath)) {
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            long totalSize = connection.getContentLengthLong();
+
+            if (streamProgress != null) {
+                streamProgress.start();
+            }
+
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                fileOutputStream.write(buffer, 0, bytesRead);
+                totalBytesRead += bytesRead;
+
+                if (streamProgress != null) {
+                    streamProgress.progress(totalSize, totalBytesRead);
+                }
+            }
+
+            if (streamProgress != null) {
+                streamProgress.finish();
+            }
+        }
+
+        return new HttpFileResponse(responseCode, responseHeaders, totalBytesRead, filePath);
     }
 
 
