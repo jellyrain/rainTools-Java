@@ -1,5 +1,11 @@
 package com.rain.utils.http.useragent;
 
+/**
+ * 用户代理
+ *
+ * @author rain
+ * @date 2024/09/22
+ */
 public class UserAgent {
 
     /**

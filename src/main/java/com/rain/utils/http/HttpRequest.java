@@ -12,6 +12,12 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * HTTP 请求
+ *
+ * @author rain
+ * @date 2024/09/22
+ */
 public final class HttpRequest {
 
     private HttpRequest() {

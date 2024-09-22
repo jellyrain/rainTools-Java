@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
  * @author rain
  * @date 2024/09/03
  */
-abstract class UserAgentType {
+public abstract class UserAgentType {
 
     /**
      * 名字
@@ -125,12 +125,12 @@ abstract class UserAgentType {
      * @param versionRegex 版本 Regex
      * @return {@link String }
      */
-    abstract protected String setVersionRegex(String versionRegex);
+    protected abstract String setVersionRegex(String versionRegex);
 
     /**
      * 设置匹配模式
      */
-    abstract protected void setPattern();
+    protected abstract void setPattern();
 
     /**
      * 是否为本类型
@@ -138,5 +138,5 @@ abstract class UserAgentType {
      * @param userAgentString 用户代理字符串
      * @return boolean
      */
-    abstract public boolean isMatch(String userAgentString);
+    public abstract boolean isMatch(String userAgentString);
 }
